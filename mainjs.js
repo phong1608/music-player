@@ -2,11 +2,23 @@ const $=document.querySelector.bind(document)
 const $$ =document.querySelectorAll.bind(document)
 const togglePlay=$('.btn-toggle-play')
 const playbtn=$('.player')
+const progressbtn=$('.progress')
+const heading=$('header h2')
+const cdThumb=$('.cd-thumb')
+const audio= $('#audio')
+const next=$('.btn-next')
+const prev=$('.btn-prev')
+const randomBtn=$('.btn-random')
+const repeatBtn=$('.btn-repeat')
+const playlist= $('.playlist')
+console.log(repeatBtn)
 
 const app={
     
     currentIndex:0,
+    isRepeat:false,
     isPlaying:false,
+    isRandom:false,
     song:[
         {
             name:'Đố em biết anh đang nghĩ gì',
@@ -60,9 +72,9 @@ const app={
         })
     },
     render: function(){
-        const htmls =this.song.map(song=>{
+        const htmls =this.song.map((song,index)=>{
             return `
-            <div class="song">
+            <div class="song ${index===this.currentIndex ?'active':''}">
                 <div class="thumb" style="background-image: url(${song.img})">
                 </div>
                 <div class="body">
@@ -77,11 +89,14 @@ const app={
         })
         $('.playlist').innerHTML = htmls.join('')
     },
+    
     handleEvent:function()
     {
+
         const _this=this
         const cd=$('.cd')
         const cdWidth=cd.offsetWidth
+        
         document.onscroll=()=>{
             
             const scrollTop=window.scrollY||document.documentElement.scrollTop
@@ -103,6 +118,7 @@ const app={
                 audio.pause()
                 
             }
+        
         audio.onplay=()=>{
             _this.isPlaying=true
             playbtn.classList.add('playing')
@@ -112,24 +128,123 @@ const app={
             playbtn.classList.remove('playing')
             
         }
-            
+        audio.ontimeupdate=()=>{
+            if(audio.duration)
+            {
+                const progress=Math.floor(audio.currentTime/audio.duration*100)
+                progressbtn.value=progress
+            }
+        }
 
+        progressbtn.onchange=(e)=>{
+            const seekTime=e.target.value*audio.duration/100
+            audio.currentTime=seekTime
             
+            
+        }
+        next.onclick=()=>{
+            if(this.isRandom)
+        {
+            _this.playRandom()
+        }
+        else{
+            _this.nextSong()
+        }
+            audio.play()
+            _this.render()
+            _this.scrollToTop()
+        }
+        
+        }
+        prev.onclick=()=>{
+            _this.prevSong();
+            audio.play();
+            _this.render()
+            _this.scrollToTop()
+        }
+        randomBtn.onclick=(e)=>{
+            _this.isRandom=!_this.isRandom
+            randomBtn.classList.toggle('active',_this.isRandom)
+        }
+        audio.onended=()=>{
+            if(_this.isRandom)
+            {
+                _this.playRandom()
+            }
+            if(_this.isRepeat)
+            {
+                _this.RepeatSong()
+            }
+            else{
+                _this.nextSong()
+            }
+            audio.play()
+            _this.render()
+            _this.scrollToTop()
+        }
+        repeatBtn.onclick=()=>{
+            _this.isRepeat=!_this.isRepeat
+            repeatBtn.classList.toggle('active',_this.isRepeat)
+        }
+        playlist.onclick=(e)=>{
+            if(e.target.closest('.song:not(.active')||e.target.closest('.option'))
+            {
+                console.log(e.target)
+            }
         }
     },
     loadCurrentSong:function()
     {
-        const heading=$('header h2')
-        const cdThumb=$('.cd-thumb')
-        const audio= $('#audio')
+        
         console.log(audio)
         heading.textContent=this.current.name
         cdThumb.style.backgroundImage=`url('${this.current.img}')`
         audio.src=this.current.path
-
+        
         
     },
+    nextSong:function()
+    {
+        this.currentIndex++;
+        if(this.currentIndex>=this.song.length)
+        {
+            this.currentIndex=0;
+        }
+        
+        this.loadCurrentSong()
+        
+    },
+    prevSong:function()
+    {
+        this.currentIndex--;
+        if(this.currentIndex<0)
+        {
+            this.currentIndex=this.song.length
+        }
+        this.loadCurrentSong()
+    },
+    playRandom:function()
+    {
+        let newIndex
+        do{
+            newIndex=Math.floor(Math.random()* this.song.length)
+        }while(newIndex ===this.currentIndex)
+        this.currentIndex=newIndex
+        this.loadCurrentSong()
+    },
+    scrollToTop:function()
+    {
+        $('.song.active').scrollIntoView({
+            behavior: 'smooth',
+            block:'nearest',
+        })
+    },
+    RepeatSong:function()
+    {
 
+        this.currentIndex
+        this.loadCurrentSong()
+    },
     start: function()
     {
         this.defineProperties()
@@ -142,3 +257,4 @@ const app={
     
 }
 app.start()
+
