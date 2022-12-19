@@ -74,8 +74,7 @@ const app={
     render: function(){
         const htmls =this.song.map((song,index)=>{
             return `
-            <div class="song ${index===this.currentIndex ?'active':''}">
-                <div class="thumb" style="background-image: url(${song.img})">
+            <div class="song ${index===this.currentIndex ?'active':''}" data-index="${index}">                <div class="thumb" style="background-image: url(${song.img})">
                 </div>
                 <div class="body">
                     <h3 class="title">${song.name}</h3>
@@ -187,9 +186,17 @@ const app={
             repeatBtn.classList.toggle('active',_this.isRepeat)
         }
         playlist.onclick=(e)=>{
-            if(e.target.closest('.song:not(.active')||e.target.closest('.option'))
+            let songNote=e.target.closest('.song:not(.active')
+            if(songNote||e.target.closest('.option'))
             {
-                console.log(e.target)
+                if(songNote)
+                {
+                    _this.currentIndex=Number(songNote.dataset.index)
+                    _this.loadCurrentSong()
+                    audio.play()
+                    _this.render()
+
+                }
             }
         }
     },
